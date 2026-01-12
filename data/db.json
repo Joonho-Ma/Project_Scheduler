@@ -1,0 +1,74 @@
+{
+  "settings": {
+    "day_start": "09:00",
+    "day_end": "18:00",
+    "focus_block_min": 50
+  },
+  "tasks": [
+    {
+      "id": "1db7b754-7a44-4f3a-8255-02a84624fc1f",
+      "title": "Shopping",
+      "due_at": "2026-01-06T18:00:00-06:00",
+      "duration_min": 60,
+      "priority": 2,
+      "status": "done",
+      "created_at": "2026-01-06T18:11:20.529711600-06:00",
+      "tags": [
+        "tag1"
+      ],
+      "notes": "note1"
+    },
+    {
+      "id": "ceb1ce6e-917d-44aa-ad2f-db25e6fe33ba",
+      "title": "weew",
+      "due_at": "2026-01-06T22:00:00-06:00",
+      "duration_min": 60,
+      "priority": 2,
+      "status": "done",
+      "created_at": "2026-01-06T18:12:02.598333800-06:00",
+      "tags": [
+        "wewew"
+      ],
+      "notes": "wewe"
+    },
+    {
+      "id": "9ee298b2-fb6e-4d37-9087-030994e159bf",
+      "title": "qweqwe",
+      "due_at": "2026-01-06T22:00:00-06:00",
+      "duration_min": 60,
+      "priority": 1,
+      "status": "done",
+      "created_at": "2026-01-06T18:12:12.312326500-06:00",
+      "tags": [
+        "ryreyr"
+      ],
+      "notes": "werwerew"
+    },
+    {
+      "id": "e1c4477c-82a9-4502-a2e7-783426fa48ec",
+      "title": "ewwrrw",
+      "due_at": "2026-01-12T14:00:00-06:00",
+      "duration_min": 60,
+      "priority": 1,
+      "status": "done",
+      "created_at": "2026-01-12T14:17:13.116920900-06:00",
+      "tags": [
+        "tag_1"
+      ],
+      "notes": "note_1"
+    },
+    {
+      "id": "b90249c0-9787-4d42-8548-c319913cfb1b",
+      "title": "title_2",
+      "due_at": "2026-01-12T14:00:00-06:00",
+      "duration_min": 100,
+      "priority": 3,
+      "status": "done",
+      "created_at": "2026-01-12T14:17:38.880632600-06:00",
+      "tags": [
+        "tag_2"
+      ],
+      "notes": "note_2"
+    }
+  ]
+}

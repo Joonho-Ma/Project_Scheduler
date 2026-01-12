@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Project Scheduler</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div>
+        <h1>Project Scheduler</h1>
+        <div class="sub">Local-first JSON db + Rust (axum) API</div>
+      </div>
+
+      <div class="row">
+        <label class="field">
+          <span>Date</span>
+          <input id="dateInput" type="date" />
+        </label>
+
+        <button id="refreshBtn" class="btn">Refresh</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- Left: Tasks -->
+      <section class="card">
+        <h2>Tasks</h2>
+
+        <form id="createTaskForm" class="form">
+          <div class="row">
+            <label class="field grow">
+              <span>Title</span>
+              <input id="titleInput" type="text" placeholder="e.g., Write demo script" required />
+            </label>
+          </div>
+
+          <div class="row">
+            <label class="field">
+              <span>Due time</span>
+              <input id="dueTimeInput" type="time" required />
+            </label>
+
+            <label class="field">
+              <span>Duration (min)</span>
+              <input id="durationInput" type="number" min="1" step="1" value="60" required />
+            </label>
+
+            <label class="field">
+              <span>Priority (1-5)</span>
+              <input id="priorityInput" type="number" min="1" max="5" step="1" value="3" required />
+            </label>
+          </div>
+
+          <div class="row">
+            <label class="field grow">
+              <span>Tags (comma)</span>
+              <input id="tagsInput" type="text" placeholder="optional: school, hackathon" />
+            </label>
+          </div>
+
+          <div class="row">
+            <label class="field grow">
+              <span>Notes</span>
+              <input id="notesInput" type="text" placeholder="optional" />
+            </label>
+          </div>
+
+          <div class="row">
+            <button class="btn primary" type="submit">Add Task</button>
+            <div id="createMsg" class="msg"></div>
+          </div>
+        </form>
+
+        <div class="meta">
+          <div><b>Now:</b> <span id="nowText">-</span></div>
+          <div><b>Count:</b> <span id="taskCount">0</span></div>
+        </div>
+
+        <div id="tasksList" class="list"></div>
+      </section>
+
+      <!-- Right: Plan + Settings -->
+      <section class="card">
+        <h2>Today Plan</h2>
+
+        <div class="row">
+          <label class="field">
+            <span>Available (min)</span>
+            <input id="availInput" type="number" min="1" step="1" value="180" />
+          </label>
+          <button id="planBtn" class="btn primary">Generate Plan</button>
+        </div>
+
+        <div class="meta">
+          <div><b>Plan now:</b> <span id="planNowText">-</span></div>
+        </div>
+
+        <h3>Plan Items</h3>
+        <div id="planList" class="list"></div>
+
+        <h3>Unplanned</h3>
+        <div id="unplannedList" class="list"></div>
+
+        <hr class="sep" />
+
+        <h2>Settings</h2>
+        <form id="settingsForm" class="form">
+          <div class="row">
+            <label class="field">
+              <span>Day start</span>
+              <input id="dayStartInput" type="time" required />
+            </label>
+            <label class="field">
+              <span>Day end</span>
+              <input id="dayEndInput" type="time" required />
+            </label>
+            <label class="field">
+              <span>Focus block (min)</span>
+              <input id="focusBlockInput" type="number" min="1" step="1" required />
+            </label>
+          </div>
+
+          <div class="row">
+            <button class="btn" type="submit">Save Settings</button>
+            <div id="settingsMsg" class="msg"></div>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
