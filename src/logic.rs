@@ -1,25 +1,37 @@
+/*
+Scheduling and scoring logic.
+Module was independently written from HTTP / Axum for testing
+*/
+
+
 use chrono::{DateTime, Duration, FixedOffset, NaiveDate, TimeZone};
 use crate::models::{Task, TaskStatus, DaySettings};
 
+
+// Internal representation of single task after scoring
+//     not exposed through API directly
 #[derive(Debug, Clone)]
 pub struct ScoredTask {
     pub task: Task,
-    pub is_overdue: bool,
+    pub is_overdue: bool,   // determine whether the task is overdue
     pub urgency: i64,        // 0..5
     pub duration_score: i64, // 1..5
     pub total: i64,          // urgency + priority + duration_score
 }
 
+// Scheduled item placed on today's timeline
+// Represents time block
 #[derive(Debug, Clone)]
 pub struct PlanItem {
-    pub task_id: String,
-    pub title: String,
-    pub start: DateTime<FixedOffset>,
-    pub end: DateTime<FixedOffset>,
-    pub score_breakdown: ScoreBreakdown,
-    pub is_overdue: bool,
+    pub task_id: String,    // task id string
+    pub title: String,      // task title
+    pub start: DateTime<FixedOffset>,   // start time of task
+    pub end: DateTime<FixedOffset>,     // end time of task
+    pub score_breakdown: ScoreBreakdown,    // scoring info
+    pub is_overdue: bool,   // whether the task is overdue
 }
 
+// Logic of how a task's score is calculated
 #[derive(Debug, Clone)]
 pub struct ScoreBreakdown {
     pub urgency: i64,
@@ -28,13 +40,18 @@ pub struct ScoreBreakdown {
     pub total: i64,
 }
 
+// Task that cannot be scheduled today
 #[derive(Debug, Clone)]
 pub struct UnplannedItem {
     pub task_id: String,
     pub reason: String, // "insufficient_time" / "invalid_duration"
 }
 
-/// relevant: status != done AND (overdue OR due_today)
+// Select tasks that are relevant for today's plan.
+//
+// Rules:
+// - Task status must not be Done
+// - Task must be either overdue OR due today
 pub fn relevant_tasks(tasks: &[Task], date: NaiveDate, now: DateTime<FixedOffset>) -> Vec<Task> {
     tasks
         .iter()
@@ -48,9 +65,9 @@ pub fn relevant_tasks(tasks: &[Task], date: NaiveDate, now: DateTime<FixedOffset
         .collect()
 }
 
-/// urgency (0..5):
-/// overdue -> 5
-/// 0-1 day:5, 1-2:4, 2-3:3, 3-4:2, 4-5:1, >=5:0
+// urgency (0..5):
+// overdue -> 5
+// 0-1 day:5, 1-2:4, 2-3:3, 3-4:2, 4-5:1, >=5:0
 pub fn urgency_score(due_at: DateTime<FixedOffset>, now: DateTime<FixedOffset>) -> i64 {
     if now > due_at {
         return 5;
@@ -69,17 +86,30 @@ pub fn urgency_score(due_at: DateTime<FixedOffset>, now: DateTime<FixedOffset>) 
     else { 0 }
 }
 
-/// duration_score (1..5), minute 기준, 짧을수록 ↑
-/// 0-60:5, 61-120:4, 121-180:3, 181-240:2, >240:1
+// Compute duration score based on estimated task length.
+//
+// Shorter tasks are prioritized:
+//     0–60 min   -> 5
+//     61–120 min -> 4
+//     121–180 min-> 3
+//     181–240 min-> 2
+//     >240 min   -> 1
 pub fn duration_score(duration_min: i64) -> i64 {
     let bucket = if duration_min <= 60 { 1 }
     else if duration_min <= 120 { 2 }
     else if duration_min <= 180 { 3 }
     else if duration_min <= 240 { 4 }
     else { 5 };
+
+    // Invert bucket so that shorter durations get higher scores
     6 - bucket
 }
 
+// Score all tasks and sort them by priority.
+//
+// Sorting rules:
+// 1) Higher total score first
+// 2) If tied, alphabetical order by title
 pub fn score_and_sort(tasks: Vec<Task>, now: DateTime<FixedOffset>) -> Vec<ScoredTask> {
     let mut scored: Vec<ScoredTask> = tasks
         .into_iter()
@@ -110,6 +140,8 @@ pub fn score_and_sort(tasks: Vec<Task>, now: DateTime<FixedOffset>) -> Vec<Score
     scored
 }
 
+
+// Parse a "HH:MM" string into a DateTime on the given date.
 fn parse_hhmm_to_today(
     date: NaiveDate,
     hhmm: &str,
@@ -125,6 +157,15 @@ fn parse_hhmm_to_today(
     offset.from_local_datetime(&naive).single()
 }
 
+
+
+/// Build today's schedule by placing tasks on a timeline.
+///
+/// Process:
+/// - Start at max(now, day_start)
+/// - Respect day_end and available minutes
+/// - Place tasks sequentially in sorted order
+/// - Tasks that do not fit are marked as unplanned
 pub fn build_today_plan(
     scored_sorted: Vec<ScoredTask>,
     date: NaiveDate,

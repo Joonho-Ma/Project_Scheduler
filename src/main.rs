@@ -44,5 +44,7 @@ async fn main() {
 
 
     // Start HTTP server
-    axum::serve(listener, app).await.expect("server error");
+    axum::serve(listener, app)
+        .await
+        .expect("server error");
 }
