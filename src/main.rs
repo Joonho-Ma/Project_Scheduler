@@ -37,10 +37,12 @@ async fn main() {
     println!("  Static files: http://{}/", addr);
     println!("  API base:     http://{}/api", addr);
 
-        
+    // Define listener with an address
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
         .expect("bind failed");
 
+
+    // Start HTTP server
     axum::serve(listener, app).await.expect("server error");
 }

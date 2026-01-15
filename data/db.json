@@ -1,7 +1,7 @@
 {
   "settings": {
-    "day_start": "09:00",
-    "day_end": "18:00",
+    "day_start": "08:00",
+    "day_end": "19:00",
     "focus_block_min": 50
   },
   "tasks": [
@@ -69,6 +69,45 @@
         "tag_2"
       ],
       "notes": "note_2"
+    },
+    {
+      "id": "0779c6fc-0396-4d59-90e0-d159c3968969",
+      "title": "task_1",
+      "due_at": "2026-01-13T14:22:00-06:00",
+      "duration_min": 60,
+      "priority": 1,
+      "status": "todo",
+      "created_at": "2026-01-13T14:06:48.858536500-06:00",
+      "tags": [
+        "tag_1"
+      ],
+      "notes": "note_1"
+    },
+    {
+      "id": "cd0695e8-81b0-4d91-bc05-4f58b33b5750",
+      "title": "task_2",
+      "due_at": "2026-01-13T17:22:00-06:00",
+      "duration_min": 80,
+      "priority": 3,
+      "status": "todo",
+      "created_at": "2026-01-13T14:07:14.650597700-06:00",
+      "tags": [
+        "tag_2"
+      ],
+      "notes": "note_2"
+    },
+    {
+      "id": "3154eddd-5bdf-4e76-b1f5-f11f6f5d9f34",
+      "title": "task_3",
+      "due_at": "2026-01-13T14:22:00-06:00",
+      "duration_min": 30,
+      "priority": 1,
+      "status": "todo",
+      "created_at": "2026-01-13T14:07:44.842503800-06:00",
+      "tags": [
+        "tag_3"
+      ],
+      "notes": "note_3"
     }
   ]
 }
