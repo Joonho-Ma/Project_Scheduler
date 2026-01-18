@@ -1,42 +1,54 @@
+// --------------------------------------------------
+// Handles API endpoints related to generating a daily plan.
+// This file connects HTTP requests (/api/plan/today)
+// to the core scheduling logic implemented in logic.rs.
+// --------------------------------------------------
+
 use axum::{
-    extract::Query,
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
+    extract::Query,         // parse query parameter
+    http::StatusCode,       // return HTTP status codes
+    response::IntoResponse, // allow returning different responses
+    Json,                   // JSON response wrapper
 };
 use chrono::{DateTime, FixedOffset, NaiveDate};
 use serde::{Deserialize, Serialize};
 
-use crate::logic;
+use crate::logic; // scheduling logic
 use crate::models::{Db, DaySettings};
-use crate::store;
+use crate::store; // JSON database load/save utilities
 
+
+// Query parameters for /plan/today
 #[derive(Debug, Deserialize)]
 pub struct PlanQuery {
-    pub date: String,         // "YYYY-MM-DD"
-    pub available_min: i64,
+    pub date: String,         // Target date in "YYYY-MM-DD" format
+    pub available_min: i64,   // Total minutes user can work today
 }
 
+
+// Full response returned to frontend
 #[derive(Debug, Serialize)]
 pub struct PlanResponse {
-    pub date: String,
-    pub now: String,
-    pub available_min: i64,
-    pub settings: DaySettings,
-    pub plan: Vec<PlanItemResponse>,
-    pub unplanned: Vec<UnplannedResponse>,
+    pub date: String,                       // requested date
+    pub now: String,                        // server time(now)
+    pub available_min: i64, 
+    pub settings: DaySettings,              // day start/end setting
+    pub plan: Vec<PlanItemResponse>,        // scheduled task
+    pub unplanned: Vec<UnplannedResponse>,  // tasks that do not fit
 }
 
+// A single scheduled task in the final plan
 #[derive(Debug, Serialize)]
 pub struct PlanItemResponse {
     pub task_id: String,
     pub title: String,
-    pub start: String,
-    pub end: String,
+    pub start: String,  // start time
+    pub end: String,    // end time
     pub score_breakdown: ScoreBreakdownResponse,
     pub is_overdue: bool,
 }
 
+// Score breakdown used for ranking tasks
 #[derive(Debug, Serialize)]
 pub struct ScoreBreakdownResponse {
     pub urgency: i64,
@@ -45,13 +57,17 @@ pub struct ScoreBreakdownResponse {
     pub total: i64,
 }
 
+// Tasks that could not be scheduled
 #[derive(Debug, Serialize)]
 pub struct UnplannedResponse {
     pub task_id: String,
     pub reason: String,
 }
 
-// Local -> FixedOffset (현재 시스템 오프셋 사용)
+// --------------------------------------------------
+// Helper: returns "current time" with a fixed offset.
+// For now, CST (-06:00) is hardcoded for simplicity.
+// --------------------------------------------------
 fn now_fixed_offset() -> DateTime<FixedOffset> {
     let local = chrono::Local::now();
     let offset_seconds = local.offset().local_minus_utc();
@@ -59,7 +75,20 @@ fn now_fixed_offset() -> DateTime<FixedOffset> {
     local.with_timezone(&fixed)
 }
 
+
+// --------------------------------------------------
+// GET /api/plan/today
+//
+// High-level flow:
+// 1. Parse and validate query parameters
+// 2. Load DB from JSON
+// 3. Filter tasks relevant to the given date
+// 4. Score and sort tasks by urgency/priority/duration
+// 5. Build today's plan within available time
+// 6. Return structured JSON for frontend rendering
+// --------------------------------------------------
 pub async fn get_today_plan(Query(q): Query<PlanQuery>) -> impl IntoResponse {
+    // Parse date string into NaiveDate
     let date = match NaiveDate::parse_from_str(&q.date, "%Y-%m-%d") {
         Ok(d) => d,
         Err(_) => return (StatusCode::BAD_REQUEST, "invalid date").into_response(),
@@ -67,16 +96,23 @@ pub async fn get_today_plan(Query(q): Query<PlanQuery>) -> impl IntoResponse {
 
     let now = now_fixed_offset();
 
+    // Load database from data/db.json
     let db: Db = match store::load_db() {
         Ok(db) => db,
         Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "failed to load db").into_response(),
     };
 
+    // Step 1: extract tasks relevant to this date
     let relevant = logic::relevant_tasks(&db.tasks, date, now);
+
+    // Step 2: score tasks and sort by total score (descending)
     let scored_sorted = logic::score_and_sort(relevant, now);
+
+    // Step 3: build today's schedule within available minutes
     let (plan, unplanned) =
         logic::build_today_plan(scored_sorted, date, now, &db.settings, q.available_min);
 
+    // Convert internal structs into API response format
     let plan_resp: Vec<PlanItemResponse> = plan
         .into_iter()
         .map(|p| PlanItemResponse {

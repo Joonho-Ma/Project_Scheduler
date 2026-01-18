@@ -1,3 +1,13 @@
+// --------------------------------------------------
+// Handles API endpoints related to task CRUD operations
+// and global settings management.
+//
+// Responsibilities:
+// - Create / read / update / delete tasks
+// - Toggle task status (Todo <-> Done)
+// - Get / update day settings
+// -------------------------------------------------
+
 use axum::{
     extract::{Path, Query},
     http::StatusCode,
@@ -30,7 +40,10 @@ pub struct TasksResponse {
     pub tasks: Vec<Task>,
 }
 
-/// GET /api/tasks?date=YYYY-MM-DD  (overdue + due_today), status != done
+// -----------------------------
+// GET /api/tasks
+// Returns all tasks stored in db.json
+// -----------------------------
 pub async fn get_tasks(Query(q): Query<TasksQuery>) -> impl IntoResponse {
     let date = match NaiveDate::parse_from_str(&q.date, "%Y-%m-%d") {
         Ok(d) => d,
@@ -72,7 +85,10 @@ pub struct CreateTaskInput {
     pub notes: Option<String>,
 }
 
-/// POST /api/tasks
+// -----------------------------
+// POST /api/tasks
+// Creates a new task and saves it to db.json
+// -----------------------------
 pub async fn create_task(Json(input): Json<CreateTaskInput>) -> impl IntoResponse {
     if input.title.trim().is_empty() {
         return (StatusCode::BAD_REQUEST, "title required").into_response();
@@ -125,7 +141,10 @@ pub struct UpdateTaskInput {
     pub notes: Option<String>,
 }
 
-/// PUT /api/tasks/:id
+// -----------------------------
+// PUT /api/tasks/:id
+// Updates an existing task by ID
+// ----------------------------
 pub async fn update_task(
     Path(id): Path<String>,
     Json(input): Json<UpdateTaskInput>,
@@ -173,7 +192,10 @@ pub async fn update_task(
     Json(updated).into_response()
 }
 
-/// DELETE /api/tasks/:id
+// -----------------------------
+// DELETE /api/tasks/:id
+// Removes a task permanently
+// -----------------------------
 pub async fn delete_task(Path(id): Path<String>) -> impl IntoResponse {
     let id = match Uuid::parse_str(&id) {
         Ok(u) => u,
@@ -199,7 +221,10 @@ pub async fn delete_task(Path(id): Path<String>) -> impl IntoResponse {
     Json(serde_json::json!({ "ok": true })).into_response()
 }
 
-/// POST /api/tasks/:id/toggle
+// -----------------------------
+// POST /api/tasks/:id/toggle
+// Toggles task status between Todo and Done
+// -----------------------------
 pub async fn toggle_task(Path(id): Path<String>) -> impl IntoResponse {
     let id = match Uuid::parse_str(&id) {
         Ok(u) => u,
@@ -230,7 +255,10 @@ pub async fn toggle_task(Path(id): Path<String>) -> impl IntoResponse {
     Json(updated).into_response()
 }
 
-/// GET /api/settings
+// -----------------------------
+// GET /api/settings
+// Returns day-level settings (start/end/focus block)
+// -----------------------------
 pub async fn get_settings() -> impl IntoResponse {
     let db: Db = match store::load_db() {
         Ok(db) => db,
@@ -239,7 +267,10 @@ pub async fn get_settings() -> impl IntoResponse {
     Json(db.settings).into_response()
 }
 
-/// PUT /api/settings
+// -----------------------------
+// PUT /api/settings
+// Updates day-level settings
+// -----------------------------
 pub async fn put_settings(Json(s): Json<DaySettings>) -> impl IntoResponse {
     let mut db: Db = match store::load_db() {
         Ok(db) => db,
