@@ -1,3 +1,13 @@
+/*
+ * styles.css
+
+ * Global stylesheet for Project Scheduler.
+ *
+ * Focus:
+ * - Simple, clean layout for hackathon demo
+ * - Dark theme with minimal visual noise
+ * - Class names are descriptive to reduce need for comments
+ */
 :root {
     --bg: #0b0f14;
     --card: #111826;

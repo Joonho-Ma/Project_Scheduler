@@ -1,5 +1,19 @@
+/*
+ * Frontend application logic.
+ *
+ * Responsibilities:
+ * - Handle user interactions (buttons, forms)
+ * - Call backend API endpoints (/api/*)
+ * - Render tasks, plans, and settings dynamically
+ *
+ * This file intentionally contains no business logic.
+ * All scheduling and scoring logic lives in the backend.
+*/
+
+// Shortcut for document.getElementById
 const $ = (id) => document.getElementById(id);
 
+// Convert Date -> "YYYY-MM-DD" for date input fields
 function toDateInputValue(d) {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -8,10 +22,11 @@ function toDateInputValue(d) {
 }
 
 function hhmmFromTimeInput(val) {
-  // "HH:MM" already
   return val;
 }
 
+// Build RFC3339 datetime string with local timezone offset
+// Used when creating new tasks
 function buildDueAtRFC3339(dateStr, timeStr) {
   // Use local timezone offset automatically via Date
   // Build a local Date then toISOString-like with offset? easiest: use Date and keep ISO in UTC won't match FixedOffset.
@@ -43,6 +58,7 @@ function setMsg(el, text, kind) {
   if (kind) el.classList.add(kind);
 }
 
+// Perform a GET request and parse JSON
 async function apiGet(url) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(await r.text());
@@ -70,6 +86,7 @@ function fmtRFC3339ToLocal(rfc) {
   }
 }
 
+// Render task list (left panel)
 function renderTasks(tasks, nowRFC) {
   $("taskCount").textContent = String(tasks.length);
   $("nowText").textContent = nowRFC ? fmtRFC3339ToLocal(nowRFC) : "-";
@@ -120,6 +137,7 @@ function renderTasks(tasks, nowRFC) {
   }
 }
 
+// Render today's plan (right panel)
 function renderPlan(resp) {
   $("planNowText").textContent = resp.now ? fmtRFC3339ToLocal(resp.now) : "-";
 
@@ -169,6 +187,7 @@ function renderPlan(resp) {
   }
 }
 
+// Load day-level settings from backend
 async function loadSettings() {
   const s = await apiGet("/api/settings");
   // s: {day_start, day_end, focus_block_min}
@@ -177,6 +196,7 @@ async function loadSettings() {
   $("focusBlockInput").value = String(s.focus_block_min);
 }
 
+// Save updated settings to backend
 async function saveSettings(e) {
   e.preventDefault();
   const msg = $("settingsMsg");
@@ -194,12 +214,14 @@ async function saveSettings(e) {
   }
 }
 
+// Fetch tasks for selected date
 async function refreshTasks() {
   const date = $("dateInput").value;
   const resp = await apiGet(`/api/tasks?date=${encodeURIComponent(date)}`);
   renderTasks(resp.tasks || [], resp.now);
 }
 
+// Generate today's plan using backend scheduler
 async function generatePlan() {
   const date = $("dateInput").value;
   const available = Number($("availInput").value);
@@ -220,6 +242,7 @@ function escapeHtml(s) {
     .replaceAll("'", "&#039;");
 }
 
+// Create a new task from form input
 async function createTask(e) {
   e.preventDefault();
   const msg = $("createMsg");
@@ -265,6 +288,7 @@ function initDefaults() {
   $("dueTimeInput").value = `${hh}:00`;
 }
 
+// Set default UI values and attach event listeners
 window.addEventListener("DOMContentLoaded", async () => {
   initDefaults();
 
