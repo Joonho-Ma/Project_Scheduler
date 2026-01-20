@@ -1,3 +1,9 @@
+# Project Scheduler
+#
+# Rust backend for a local-first task scheduler.
+# Uses Axum for HTTP API, Chrono for time handling,
+# and JSON-based persistence for simplicity.
+
 [package]
 name = "Project_Scheduler"
 version = "0.1.0"
