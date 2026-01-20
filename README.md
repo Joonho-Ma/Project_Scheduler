@@ -19,7 +19,7 @@ Instead of relying on cloud services or complex databases, this project uses:
 
 ---
 ## Demo Screenshot
-![Project Scheduler UI](screenshots/project_scheduler_results.jpg)
+![Project Scheduler UI](screenshots/project_scheduler_result.jpg)
 
 **Main interface of Project Scheduler.**  
 Tasks are created and managed on the left, while the backend-generated daily plan is displayed on the right.  
